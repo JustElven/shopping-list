@@ -1,32 +1,32 @@
-# Список покупок
+# Shopping List
 
-Веб-приложение для списка продуктов: добавляйте товары, отмечайте купленное и берите список с собой в магазин.
+A web app for your grocery list: add items, tick off what you've bought, and take the list with you to the store.
 
-> Учебный проект: я пишу его с нуля, чтобы освоить HTML, CSS и JavaScript.
+> A learning project: I'm building it from scratch to learn HTML, CSS and JavaScript.
 
-## Возможности
+## Features
 
-- [ ] Добавление товаров в список
-- [ ] Удаление товаров и отметка «куплено»
-- [ ] Сохранение списка в браузере (localStorage)
-- [ ] Разделы списка и свой порядок разделов
-- [ ] Работа без интернета (PWA)
+- [ ] Add items to the list
+- [ ] Delete items and mark them as bought
+- [ ] Save the list in the browser (localStorage)
+- [ ] List sections with a custom section order
+- [ ] Offline support (PWA)
 
-## Технологии
+## Tech stack
 
 - HTML5
 - CSS3
-- JavaScript (без фреймворков)
+- JavaScript (no frameworks)
 
-## Как запустить
+## How to run
 
-Откройте `index.html` в браузере. Установка не требуется.
+Open `index.html` in your browser. No installation required.
 
-## Скриншоты
+## Screenshots
 
-_Появятся позже._
+_Coming soon._
 
-## Планы
+## Roadmap
 
-- Автоопределение раздела по названию товара
-- Установка на домашний экран телефона
+- Automatically detect an item's section from its name
+- Install on a phone's home screen
