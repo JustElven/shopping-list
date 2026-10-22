@@ -1,0 +1,8 @@
+# Настройки IDE (WebStorm)
+.idea/
+
+# Мусор macOS
+.DS_Store
+
+# Зависимости Node.js (если появятся)
+node_modules/
