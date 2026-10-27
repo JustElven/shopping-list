@@ -58,7 +58,7 @@ function renderCategorySelect() {
   catSelect.innerHTML = '';
   categoryOrder.forEach(c => {
     const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c;
+    opt.value = c; opt.textContent = catLabel(c);
     catSelect.appendChild(opt);
   });
   catSelect.value = categoryOrder.includes(prev) ? prev : categoryOrder[0];
@@ -78,7 +78,6 @@ const presetName = document.getElementById('presetName');
 const applyPresetBtn = document.getElementById('applyPresetBtn');
 const savePresetBtn = document.getElementById('savePresetBtn');
 const deletePresetBtn = document.getElementById('deletePresetBtn');
-const deletePresetNameEl = document.getElementById('deletePresetName');
 
 // ---------- Светлая / тёмная тема ----------
 // Тема хранится в атрибуте data-theme на <html>; сам атрибут ставит скрипт в <head>,
@@ -90,7 +89,7 @@ const themeColorMeta = document.querySelector('meta[name="theme-color"]');
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   themeToggle.textContent = theme === 'dark' ? '☀' : '☾'; // показываем, на какую тему переключимся
-  themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  themeToggle.setAttribute('aria-label', theme === 'dark' ? t('themeToLight') : t('themeToDark'));
   if (themeColorMeta) themeColorMeta.content = theme === 'dark' ? '#0C0C0C' : '#E4E4E4';
 }
 
@@ -102,17 +101,45 @@ themeToggle.addEventListener('click', () => {
 
 applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
 
+// ---------- Язык интерфейса ----------
+// Кнопка показывает текущий язык; по нажатию переключает на другой и перерисовывает всё, что зависит от языка.
+
+const langToggle = document.getElementById('langToggle');
+
+function applyLanguage() {
+  translateDom();
+  langToggle.textContent = currentLang.toUpperCase();
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+  updateViewTitle();
+  renderCategorySelect();
+  renderOrderPanel();
+  render();
+}
+
+langToggle.addEventListener('click', () => {
+  currentLang = currentLang === 'ru' ? 'en' : 'ru';
+  try { localStorage.setItem('shopping-list-lang', currentLang); } catch (e) {}
+  applyLanguage();
+});
+
 // Переключение между двумя экранами: список покупок и настройка разделов.
 const viewList = document.getElementById('viewList');
 const viewTitle = document.getElementById('viewTitle');
 
+let activeView = 'list';
+
+function updateViewTitle() {
+  viewTitle.textContent = activeView === 'sections' ? t('sectionsTitle') : t('title');
+}
+
 function showView(name) {
   const sections = name === 'sections';
+  activeView = name;
   if (sections) renderOrderPanel(); // перед показом строим актуальный список разделов
   viewList.hidden = sections;
   orderPanel.hidden = !sections;
   orderBar.hidden = sections;
-  viewTitle.textContent = sections ? 'Sections' : 'Shopping List';
+  updateViewTitle();
   window.scrollTo(0, 0);
 }
 
@@ -122,11 +149,14 @@ orderBack.addEventListener('click', () => showView('list'));
 function addCategory() {
   const name = newCategoryName.value.trim();
   if (!name) { newCategoryName.focus(); return; }
-  if (categoryOrder.some(c => c.toLowerCase() === name.toLowerCase())) {
+  // Если ввели название встроенного раздела (на любом языке), добавляем сам раздел, а не копию с тем же названием
+  const key = normalizeCategory(name);
+  const lower = name.toLowerCase();
+  if (categoryOrder.includes(key) || categoryOrder.some(c => c.toLowerCase() === lower || catLabel(c).toLowerCase() === lower)) {
     newCategoryName.value = '';
     return;
   }
-  categoryOrder.splice(categoryOrder.length - 1, 0, name);
+  categoryOrder.splice(categoryOrder.length - 1, 0, key);
   newCategoryName.value = '';
   saveOrder();
   renderCategorySelect();
@@ -149,7 +179,11 @@ function deleteCategory(cat) {
 }
 
 function renderPresetSelect() {
-  presetSelect.innerHTML = '<option value="">— choose —</option>';
+  presetSelect.innerHTML = '';
+  const choose = document.createElement('option');
+  choose.value = '';
+  choose.textContent = t('choose');
+  presetSelect.appendChild(choose);
   Object.keys(presets).forEach(name => {
     const opt = document.createElement('option');
     opt.value = name;
@@ -159,7 +193,7 @@ function renderPresetSelect() {
   });
   if (activePreset && presets[activePreset]) {
     deletePresetBtn.style.display = 'block';
-    deletePresetNameEl.textContent = activePreset;
+    deletePresetBtn.textContent = t('deleteOrder', { name: activePreset });
   } else {
     deletePresetBtn.style.display = 'none';
   }
@@ -181,7 +215,7 @@ function renderOrderSelect() {
   if (!current) {
     const own = document.createElement('option');
     own.value = '';
-    own.textContent = 'Custom order';
+    own.textContent = t('customOrder');
     orderSelect.appendChild(own);
   }
   names.forEach(name => {
@@ -223,13 +257,13 @@ function renderOrderPanel() {
 
     const label = document.createElement('span');
     label.className = 'order-label';
-    label.textContent = cat;
+    label.textContent = catLabel(cat);
 
     // Значок из шести точек справа: за него строку перетаскивают
     const handle = document.createElement('span');
     handle.className = 'drag-handle';
     handle.textContent = '⠿';
-    handle.setAttribute('aria-label', 'Drag “' + cat + '”');
+    handle.setAttribute('aria-label', t('dragAria', { cat: catLabel(cat) }));
     handle.addEventListener('pointerdown', e => startDrag(e, row));
 
     content.append(num, label, handle);
@@ -240,8 +274,8 @@ function renderOrderPanel() {
       const del = document.createElement('button');
       del.className = 'swipe-delete';
       del.type = 'button';
-      del.textContent = 'Delete';
-      del.setAttribute('aria-label', 'Delete section “' + cat + '”');
+      del.textContent = t('delete');
+      del.setAttribute('aria-label', t('deleteSectionAria', { cat: catLabel(cat) }));
       del.addEventListener('click', () => deleteCategory(cat));
       row.appendChild(del);
       enableSwipe(row, content);
@@ -472,7 +506,7 @@ function render() {
   if (items.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty';
-    empty.textContent = 'Your list is empty. Add your first item above.';
+    empty.textContent = t('empty');
     listArea.appendChild(empty);
   } else {
     const grouped = {};
@@ -488,7 +522,7 @@ function render() {
       section.className = 'category';
       const label = document.createElement('p');
       label.className = 'category-name';
-      label.textContent = cat;
+      label.textContent = catLabel(cat);
       section.appendChild(label);
 
       group.forEach(item => {
@@ -497,7 +531,7 @@ function render() {
 
         const check = document.createElement('button');
         check.className = 'check';
-        check.setAttribute('aria-label', item.checked ? 'Mark as not bought' : 'Mark as bought');
+        check.setAttribute('aria-label', item.checked ? t('markNotBought') : t('markBought'));
         check.innerHTML = '<svg viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         check.addEventListener('click', () => {
           item.checked = !item.checked;
@@ -521,7 +555,7 @@ function render() {
 
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove';
-        removeBtn.setAttribute('aria-label', 'Remove');
+        removeBtn.setAttribute('aria-label', t('remove'));
         removeBtn.textContent = '×';
         removeBtn.addEventListener('click', () => {
           items = items.filter(i => i.id !== item.id);
@@ -540,7 +574,7 @@ function render() {
   const total = items.length;
   const bought = items.filter(i => i.checked).length;
   totalCountEl.textContent = total;
-  boughtCountEl.textContent = bought + ' of ' + total;
+  boughtCountEl.textContent = t('boughtOf', { n: bought, total });
   clearBtn.disabled = bought === 0;
   progressBar.style.width = (total ? Math.round(bought / total * 100) : 0) + '%';
   renderOrderSelect();
@@ -588,11 +622,11 @@ importFile.addEventListener('change', () => {
       render();
       renderOrderPanel();
     } catch (e) {
-      alert("Couldn't read the backup file. Make sure it's the file exported by this app.");
+      alert(t('backupError'));
     }
   };
   reader.readAsText(file);
   importFile.value = '';
 });
 
-render();
+applyLanguage();

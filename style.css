@@ -75,11 +75,12 @@ h1 {
   font-weight: 700;
   text-align: center;
   margin: 0;
-  padding: 0 46px;            /* место под кнопку темы справа, заголовок остаётся по центру */
+  padding: 0 46px;            /* место под кнопки языка и темы по бокам, заголовок остаётся по центру */
   letter-spacing: -0.02em;
 }
 
-.theme-toggle {
+.theme-toggle,
+.lang-toggle {
   position: absolute;
   top: 24px;
   right: 0;
@@ -92,8 +93,11 @@ h1 {
   font-weight: 500;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.theme-toggle { width: 38px; font-size: 16px; line-height: 1; padding: 0; }
-.theme-toggle:hover { border-color: var(--ink-faint); color: var(--ink); background: var(--accent-soft); }
+.theme-toggle,
+.lang-toggle { width: 38px; font-size: 16px; line-height: 1; padding: 0; }
+.lang-toggle { right: auto; left: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+.theme-toggle:hover,
+.lang-toggle:hover { border-color: var(--ink-faint); color: var(--ink); background: var(--accent-soft); }
 
 .order-bar label {
   display: block;
@@ -498,6 +502,7 @@ footer {
   body { padding: 20px 12px 48px; }
   .receipt { padding: 0 20px; border-radius: 18px; }
   header { padding-top: 22px; }
-  .theme-toggle { top: 18px; }
+  .theme-toggle,
+  .lang-toggle { top: 18px; }
   h1 { font-size: 24px; }
 }

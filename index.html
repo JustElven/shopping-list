@@ -30,34 +30,35 @@
 <div class="wrap">
     <div class="receipt">
     <header>
+      <button class="lang-toggle" id="langToggle" type="button" data-i18n-aria-label="langAria"></button>
       <h1 id="viewTitle">Shopping List</h1>
       <button class="theme-toggle" id="themeToggle" type="button"></button>
       <div class="order-bar" id="orderBar">
-        <label for="orderSelect">Section order</label>
+        <label for="orderSelect" data-i18n="orderLabel">Section order</label>
         <select id="orderSelect"></select>
       </div>
     </header>
 
     <section class="order-panel view" id="orderPanel" hidden>
       <div class="order-panel-inner">
-        <button class="back-btn" id="orderBack" type="button">← Back to list</button>
-        <p class="order-hint">Drag sections by the ⠿ handle to put them in the order you like. To remove a section, swipe it left.</p>
+        <button class="back-btn" id="orderBack" type="button" data-i18n="backToList">← Back to list</button>
+        <p class="order-hint" data-i18n="orderHint">Drag sections by the ⠿ handle to put them in the order you like. To remove a section, swipe it left.</p>
         <div id="orderList"></div>
         <div class="preset-row">
-          <input id="newCategoryName" placeholder="New section name" autocomplete="off" />
-          <button class="preset-btn" id="addCategoryBtn">Add</button>
+          <input id="newCategoryName" placeholder="New section name" data-i18n-placeholder="newSectionPlaceholder" autocomplete="off" />
+          <button class="preset-btn" id="addCategoryBtn" data-i18n="add">Add</button>
         </div>
         <div class="preset-section">
-          <p class="preset-label">Saved orders</p>
+          <p class="preset-label" data-i18n="savedOrders">Saved orders</p>
           <div class="preset-row">
             <select id="presetSelect"><option value="">— choose —</option></select>
-            <button class="preset-btn" id="applyPresetBtn">Apply</button>
+            <button class="preset-btn" id="applyPresetBtn" data-i18n="apply">Apply</button>
           </div>
           <div class="preset-row">
-            <input id="presetName" placeholder="New order name" autocomplete="off" />
-            <button class="preset-btn" id="savePresetBtn">Save</button>
+            <input id="presetName" placeholder="New order name" data-i18n-placeholder="newOrderPlaceholder" autocomplete="off" />
+            <button class="preset-btn" id="savePresetBtn" data-i18n="save">Save</button>
           </div>
-          <button class="preset-delete" id="deletePresetBtn" style="display:none">Delete saved order “<span id="deletePresetName"></span>”</button>
+          <button class="preset-delete" id="deletePresetBtn" style="display:none"></button>
         </div>
       </div>
     </section>
@@ -65,24 +66,24 @@
     <div class="view" id="viewList">
       <div class="add-row">
         <div class="fields">
-          <input id="itemName" placeholder="e.g. milk" autocomplete="off" />
-          <input id="itemQty" placeholder="1 pc" autocomplete="off" />
+          <input id="itemName" placeholder="e.g. milk" data-i18n-placeholder="itemPlaceholder" autocomplete="off" />
+          <input id="itemQty" placeholder="1 pc" data-i18n-placeholder="qtyPlaceholder" autocomplete="off" />
         </div>
         <select id="itemCat"></select>
-        <button class="add-btn" id="addBtn">Add to list</button>
+        <button class="add-btn" id="addBtn" data-i18n="addToList">Add to list</button>
       </div>
   
       <div class="list" id="listArea"></div>
   
       <footer>
         <div class="progress" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
-        <div class="totals"><span>Total items</span><span class="num" id="totalCount">0</span></div>
-        <div class="totals"><span>Bought</span><span class="num" id="boughtCount">0 of 0</span></div>
-        <button class="clear-btn" id="clearBtn">Clear bought</button>
-        <button class="clear-btn" id="orderToggle" type="button">Edit sections</button>
+        <div class="totals"><span data-i18n="totalItems">Total items</span><span class="num" id="totalCount">0</span></div>
+        <div class="totals"><span data-i18n="bought">Bought</span><span class="num" id="boughtCount">0 of 0</span></div>
+        <button class="clear-btn" id="clearBtn" data-i18n="clearBought">Clear bought</button>
+        <button class="clear-btn" id="orderToggle" type="button" data-i18n="editSections">Edit sections</button>
         <div class="backup-row">
-          <button class="backup-link" id="exportBtn">Download backup</button>
-          <button class="backup-link" id="importBtn">Restore from file</button>
+          <button class="backup-link" id="exportBtn" data-i18n="downloadBackup">Download backup</button>
+          <button class="backup-link" id="importBtn" data-i18n="restoreBackup">Restore from file</button>
           <input type="file" id="importFile" accept="application/json" style="display:none" />
         </div>
       </footer>
@@ -91,7 +92,9 @@
 </div>
 
 <!-- Порядок важен: каждый следующий файл использует то, что объявлено в предыдущих -->
-<script src="model.js"></script>
+<script src="i18n.js"></script>
+<script src="model_ru.js"></script>
+<script src="model_en.js"></script>
 <script src="categories.js"></script>
 <script src="index.js"></script>
 </body>

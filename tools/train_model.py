@@ -1,7 +1,7 @@
 """Обучение модели определения раздела.
 
 Читает tools/dataset.json ({раздел: [названия товаров]}), обучает логистическую регрессию
-на символьных n-граммах и записывает веса в model.js.
+на символьных n-граммах и записывает веса в model_en.js (английская модель; русская лежит в model_ru.js).
 
 Запуск из корня проекта (нужны scikit-learn и numpy):
     python3 tools/train_model.py
@@ -67,12 +67,12 @@ def main():
         'ngram_max': NGRAM_MAX,
     }
     header = (
-        '// Обученная модель определения раздела (веса логистической регрессии).\n'
+        '// Обученная модель определения раздела для английских названий (веса логистической регрессии).\n'
         '// Файл сгенерирован скриптом tools/train_model.py на датасете tools/dataset.json, руками не правится.\n'
     )
-    body = 'const ML_MODEL = ' + json.dumps(model, ensure_ascii=False, separators=(',', ':')) + ';\n'
-    (ROOT / 'model.js').write_text(header + body, encoding='utf-8')
-    print(f'Wrote model.js: {len(model["vocab"])} grams, {len(model["classes"])} classes', file=sys.stderr)
+    body = 'const ML_MODEL_EN = ' + json.dumps(model, ensure_ascii=False, separators=(',', ':')) + ';\n'
+    (ROOT / 'model_en.js').write_text(header + body, encoding='utf-8')
+    print(f'Wrote model_en.js: {len(model["vocab"])} grams, {len(model["classes"])} classes', file=sys.stderr)
 
 
 if __name__ == '__main__':
