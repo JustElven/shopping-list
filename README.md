@@ -6,10 +6,10 @@ A web app for your grocery list: add items, tick off what you've bought, and tak
 
 ## Features
 
-- [ ] Add items to the list
-- [ ] Delete items and mark them as bought
-- [ ] Save the list in the browser (localStorage)
-- [ ] List sections with a custom section order
+- [x] Add items to the list
+- [x] Delete items and mark them as bought
+- [x] Save the list in the browser (localStorage)
+- [x] List sections with a custom section order
 - [ ] Offline support (PWA)
 
 ## Tech stack
@@ -21,6 +21,12 @@ A web app for your grocery list: add items, tick off what you've bought, and tak
 ## How to run
 
 Open `index.html` in your browser. No installation required.
+
+## Use it on your phone
+
+The list is stored in your browser (`localStorage`), so it stays on the device where you wrote it.
+Open the published link on your phone and add it to the home screen (Safari: Share → Add to Home Screen).
+Always use the same link, and use "Download backup" now and then to be safe.
 
 ## Screenshots
 
