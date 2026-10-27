@@ -66,6 +66,9 @@ function renderCategorySelect() {
 renderCategorySelect();
 
 const orderToggle = document.getElementById('orderToggle');
+const orderBack = document.getElementById('orderBack');
+const orderBar = document.getElementById('orderBar');
+const orderSelect = document.getElementById('orderSelect');
 const orderPanel = document.getElementById('orderPanel');
 const orderList = document.getElementById('orderList');
 const newCategoryName = document.getElementById('newCategoryName');
@@ -101,7 +104,6 @@ applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
 
 // Переключение между двумя экранами: список покупок и настройка разделов.
 const viewList = document.getElementById('viewList');
-const viewStamp = document.getElementById('viewStamp');
 const viewTitle = document.getElementById('viewTitle');
 
 function showView(name) {
@@ -109,15 +111,13 @@ function showView(name) {
   if (sections) renderOrderPanel(); // перед показом строим актуальный список разделов
   viewList.hidden = sections;
   orderPanel.hidden = !sections;
-  viewStamp.textContent = sections ? 'НАСТРОЙКИ' : 'СПИСОК';
-  viewTitle.textContent = sections ? 'Разделы списка' : 'Что купить';
-  orderToggle.textContent = sections ? '← К списку' : 'Разделы списка';
+  orderBar.hidden = sections;
+  viewTitle.textContent = sections ? 'Разделы списка' : 'Список покупок';
   window.scrollTo(0, 0);
 }
 
-orderToggle.addEventListener('click', () => {
-  showView(orderPanel.hidden ? 'sections' : 'list');
-});
+orderToggle.addEventListener('click', () => showView('sections'));
+orderBack.addEventListener('click', () => showView('list'));
 
 function addCategory() {
   const name = newCategoryName.value.trim();
@@ -163,7 +163,38 @@ function renderPresetSelect() {
   } else {
     deletePresetBtn.style.display = 'none';
   }
+  renderOrderSelect();
 }
+
+// Название порядка, который сейчас действует: пустое, если раздел переставили вручную
+function currentOrderName() {
+  const p = presets[activePreset];
+  const same = p && p.length === categoryOrder.length && p.every((c, i) => c === categoryOrder[i]);
+  return same ? activePreset : '';
+}
+
+// Выбор порядка на главном экране: показывает действующий порядок и переключает на сохранённый
+function renderOrderSelect() {
+  const current = currentOrderName();
+  const names = Object.keys(presets);
+  orderSelect.innerHTML = '';
+  if (!current) {
+    const own = document.createElement('option');
+    own.value = '';
+    own.textContent = 'Свой порядок';
+    orderSelect.appendChild(own);
+  }
+  names.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    orderSelect.appendChild(opt);
+  });
+  orderSelect.value = current;
+  orderSelect.disabled = names.length === 0;
+}
+
+orderSelect.addEventListener('change', () => applyPreset(orderSelect.value));
 
 let dragEl = null;
 let dragPointerId = null;
@@ -355,8 +386,7 @@ function onDragEnd() {
   render();
 }
 
-applyPresetBtn.addEventListener('click', () => {
-  const name = presetSelect.value;
+function applyPreset(name) {
   if (!name || !presets[name]) return;
   categoryOrder = presets[name].slice();
   if (!categoryOrder.includes(PROTECTED_CATEGORY)) categoryOrder.push(PROTECTED_CATEGORY);
@@ -368,7 +398,9 @@ applyPresetBtn.addEventListener('click', () => {
   renderCategorySelect();
   render();
   renderOrderPanel();
-});
+}
+
+applyPresetBtn.addEventListener('click', () => applyPreset(presetSelect.value));
 
 savePresetBtn.addEventListener('click', () => {
   const name = presetName.value.trim();
@@ -398,7 +430,6 @@ const boughtCountEl = document.getElementById('boughtCount');
 const clearBtn = document.getElementById('clearBtn');
 const progressBar = document.getElementById('progressBar');
 
-document.getElementById('dateLine').textContent = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
 
 nameInput.addEventListener('input', () => {
   const guess = guessCategory(nameInput.value);
@@ -512,6 +543,7 @@ function render() {
   boughtCountEl.textContent = bought + ' из ' + total;
   clearBtn.disabled = bought === 0;
   progressBar.style.width = (total ? Math.round(bought / total * 100) : 0) + '%';
+  renderOrderSelect();
 }
 
 const exportBtn = document.getElementById('exportBtn');

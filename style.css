@@ -61,46 +61,28 @@ body {
 }
 
 header {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
   padding: 28px 0 20px;
   border-bottom: 1px solid var(--line);
-}
-
-.stamp {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--ink-faint);
-  margin-bottom: 6px;
 }
 
 h1 {
   font-size: 26px;
   font-weight: 700;
-  margin: 0 0 4px;
+  text-align: center;
+  margin: 0;
+  padding: 0 46px;            /* место под кнопку темы справа, заголовок остаётся по центру */
   letter-spacing: -0.02em;
 }
 
-.date {
-  font-size: 13px;
-  color: var(--ink-faint);
-  margin: 0;
-  text-transform: capitalize;
-}
-
-.head-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.order-toggle,
 .theme-toggle {
+  position: absolute;
+  top: 24px;
+  right: 0;
   height: 38px;
   background: var(--field);
   border: 1px solid var(--line);
@@ -110,10 +92,31 @@ h1 {
   font-weight: 500;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.order-toggle { padding: 0 14px; white-space: nowrap; }
 .theme-toggle { width: 38px; font-size: 16px; line-height: 1; padding: 0; }
-.order-toggle:hover,
 .theme-toggle:hover { border-color: var(--ink-faint); color: var(--ink); background: var(--accent-soft); }
+
+.order-bar label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.order-bar[hidden] { display: none; }
+.order-bar select:disabled { opacity: 0.6; }
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0;
+  margin-bottom: 14px;
+}
+.back-btn:hover { color: var(--ink); }
 
 .add-row {
   display: grid;
@@ -494,8 +497,7 @@ footer {
 @media (max-width: 480px) {
   body { padding: 20px 12px 48px; }
   .receipt { padding: 0 20px; border-radius: 18px; }
-  header { flex-direction: column; gap: 16px; padding-top: 22px; }
-  .head-actions { width: 100%; }
-  .order-toggle { flex: 1; }
+  header { padding-top: 22px; }
+  .theme-toggle { top: 18px; }
   h1 { font-size: 24px; }
 }
