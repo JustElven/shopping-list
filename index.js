@@ -18,7 +18,7 @@ try {
   const savedOrder = localStorage.getItem('shopping-list-order');
   if (savedOrder) {
     const parsed = JSON.parse(savedOrder);
-    if (Array.isArray(parsed) && parsed.length) categoryOrder = parsed.map(normalizeCategory);
+    if (Array.isArray(parsed) && parsed.length) categoryOrder = normalizeCategoryList(parsed);
   }
 } catch (e) {}
 if (!categoryOrder.includes(PROTECTED_CATEGORY)) categoryOrder.push(PROTECTED_CATEGORY);
@@ -28,7 +28,7 @@ try {
   const savedPresets = localStorage.getItem('shopping-list-presets');
   if (savedPresets) {
     const parsed = JSON.parse(savedPresets);
-    Object.keys(parsed).forEach(name => { presets[name] = parsed[name].map(normalizeCategory); });
+    Object.keys(parsed).forEach(name => { presets[name] = normalizeCategoryList(parsed[name]); });
   }
 } catch (e) {}
 
@@ -90,7 +90,7 @@ const themeColorMeta = document.querySelector('meta[name="theme-color"]');
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   themeToggle.textContent = theme === 'dark' ? '☀' : '☾'; // показываем, на какую тему переключимся
-  themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему');
+  themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
   if (themeColorMeta) themeColorMeta.content = theme === 'dark' ? '#0C0C0C' : '#E4E4E4';
 }
 
@@ -112,7 +112,7 @@ function showView(name) {
   viewList.hidden = sections;
   orderPanel.hidden = !sections;
   orderBar.hidden = sections;
-  viewTitle.textContent = sections ? 'Разделы списка' : 'Список покупок';
+  viewTitle.textContent = sections ? 'Sections' : 'Shopping List';
   window.scrollTo(0, 0);
 }
 
@@ -149,7 +149,7 @@ function deleteCategory(cat) {
 }
 
 function renderPresetSelect() {
-  presetSelect.innerHTML = '<option value="">— выбрать —</option>';
+  presetSelect.innerHTML = '<option value="">— choose —</option>';
   Object.keys(presets).forEach(name => {
     const opt = document.createElement('option');
     opt.value = name;
@@ -181,7 +181,7 @@ function renderOrderSelect() {
   if (!current) {
     const own = document.createElement('option');
     own.value = '';
-    own.textContent = 'Свой порядок';
+    own.textContent = 'Custom order';
     orderSelect.appendChild(own);
   }
   names.forEach(name => {
@@ -229,7 +229,7 @@ function renderOrderPanel() {
     const handle = document.createElement('span');
     handle.className = 'drag-handle';
     handle.textContent = '⠿';
-    handle.setAttribute('aria-label', 'Перетащить «' + cat + '»');
+    handle.setAttribute('aria-label', 'Drag “' + cat + '”');
     handle.addEventListener('pointerdown', e => startDrag(e, row));
 
     content.append(num, label, handle);
@@ -240,8 +240,8 @@ function renderOrderPanel() {
       const del = document.createElement('button');
       del.className = 'swipe-delete';
       del.type = 'button';
-      del.textContent = 'Удалить';
-      del.setAttribute('aria-label', 'Удалить раздел «' + cat + '»');
+      del.textContent = 'Delete';
+      del.setAttribute('aria-label', 'Delete section “' + cat + '”');
       del.addEventListener('click', () => deleteCategory(cat));
       row.appendChild(del);
       enableSwipe(row, content);
@@ -472,7 +472,7 @@ function render() {
   if (items.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty';
-    empty.textContent = 'Список пуст. Добавьте первый продукт выше.';
+    empty.textContent = 'Your list is empty. Add your first item above.';
     listArea.appendChild(empty);
   } else {
     const grouped = {};
@@ -497,7 +497,7 @@ function render() {
 
         const check = document.createElement('button');
         check.className = 'check';
-        check.setAttribute('aria-label', item.checked ? 'Отметить как не купленное' : 'Отметить как купленное');
+        check.setAttribute('aria-label', item.checked ? 'Mark as not bought' : 'Mark as bought');
         check.innerHTML = '<svg viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         check.addEventListener('click', () => {
           item.checked = !item.checked;
@@ -521,7 +521,7 @@ function render() {
 
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove';
-        removeBtn.setAttribute('aria-label', 'Удалить');
+        removeBtn.setAttribute('aria-label', 'Remove');
         removeBtn.textContent = '×';
         removeBtn.addEventListener('click', () => {
           items = items.filter(i => i.id !== item.id);
@@ -540,7 +540,7 @@ function render() {
   const total = items.length;
   const bought = items.filter(i => i.checked).length;
   totalCountEl.textContent = total;
-  boughtCountEl.textContent = bought + ' из ' + total;
+  boughtCountEl.textContent = bought + ' of ' + total;
   clearBtn.disabled = bought === 0;
   progressBar.style.width = (total ? Math.round(bought / total * 100) : 0) + '%';
   renderOrderSelect();
@@ -573,11 +573,11 @@ importFile.addEventListener('change', () => {
     try {
       const data = JSON.parse(reader.result);
       if (Array.isArray(data.items)) items = data.items.map(i => ({ ...i, category: normalizeCategory(i.category) }));
-      if (Array.isArray(data.categoryOrder) && data.categoryOrder.length) categoryOrder = data.categoryOrder.map(normalizeCategory);
+      if (Array.isArray(data.categoryOrder) && data.categoryOrder.length) categoryOrder = normalizeCategoryList(data.categoryOrder);
       if (!categoryOrder.includes(PROTECTED_CATEGORY)) categoryOrder.push(PROTECTED_CATEGORY);
       if (data.presets && typeof data.presets === 'object') {
         presets = {};
-        Object.keys(data.presets).forEach(name => { presets[name] = data.presets[name].map(normalizeCategory); });
+        Object.keys(data.presets).forEach(name => { presets[name] = normalizeCategoryList(data.presets[name]); });
       }
       if (typeof data.activePreset === 'string') activePreset = data.activePreset;
       save();
@@ -588,7 +588,7 @@ importFile.addEventListener('change', () => {
       render();
       renderOrderPanel();
     } catch (e) {
-      alert('Не удалось прочитать файл резервной копии — проверь, что это тот самый экспортированный файл.');
+      alert("Couldn't read the backup file. Make sure it's the file exported by this app.");
     }
   };
   reader.readAsText(file);

@@ -3,44 +3,67 @@
 //   1. learnedCategories: то, что пользователь исправил вручную (приоритет);
 //   2. KEYWORDS: словарь ключевых слов (побеждает самое длинное совпадение);
 //   3. mlPredict: небольшая модель из model.js, если слов не нашлось.
-// Если и модель не уверена, товар уходит в «Разное».
+// Если и модель не уверена, товар уходит в «Other».
 
-const DEFAULT_CATEGORIES = ['Овощи и фрукты','Молочное и яйца','Мясо и рыба','Хлеб и выпечка','Консервы','Паста','Крупы','Сладкое','Заморозка','Напитки','Хозтовары','Разное'];
-const PROTECTED_CATEGORY = 'Разное';
+const DEFAULT_CATEGORIES = ['Fruits & vegetables','Dairy & eggs','Meat & fish','Bread & bakery','Pantry & canned','Pasta','Grains','Sweets & snacks','Frozen','Drinks','Household','Other'];
+const PROTECTED_CATEGORY = 'Other';
 
-const KEY_TO_RU = {
-  fruits_veg: 'Овощи и фрукты', dairy_eggs: 'Молочное и яйца', meat_fish: 'Мясо и рыба',
-  bread_bakery: 'Хлеб и выпечка', canned: 'Консервы', pasta: 'Паста', grains: 'Крупы',
-  sweets: 'Сладкое', frozen: 'Заморозка', drinks: 'Напитки', household: 'Хозтовары', other: 'Разное'
-};
-const LEGACY_RU = {
-  'Бакалея': 'Консервы'
+// Старые названия разделов (русские и служебные ключи) → нынешние английские.
+// Так списки, сохранённые до перевода, открываются без потерь.
+const LEGACY_CATEGORIES = {
+  fruits_veg: 'Fruits & vegetables', dairy_eggs: 'Dairy & eggs', meat_fish: 'Meat & fish',
+  bread_bakery: 'Bread & bakery', canned: 'Pantry & canned', pasta: 'Pasta', grains: 'Grains',
+  sweets: 'Sweets & snacks', frozen: 'Frozen', drinks: 'Drinks', household: 'Household', other: 'Other',
+  'Овощи и фрукты': 'Fruits & vegetables', 'Молочное и яйца': 'Dairy & eggs', 'Мясо и рыба': 'Meat & fish',
+  'Хлеб и выпечка': 'Bread & bakery', 'Консервы': 'Pantry & canned', 'Бакалея': 'Pantry & canned',
+  'Паста': 'Pasta', 'Крупы': 'Grains', 'Сладкое': 'Sweets & snacks', 'Заморозка': 'Frozen',
+  'Напитки': 'Drinks', 'Хозтовары': 'Household', 'Разное': 'Other'
 };
 
 function normalizeCategory(raw) {
-  if (KEY_TO_RU[raw]) return KEY_TO_RU[raw];
-  if (LEGACY_RU[raw]) return LEGACY_RU[raw];
-  return raw;
+  return LEGACY_CATEGORIES[raw] || raw;
 }
 
+// То же для списка разделов; заодно убирает повторы (например, «Бакалея» и «Консервы» стали одним разделом)
+function normalizeCategoryList(list) {
+  return list.map(normalizeCategory).filter((cat, i, all) => all.indexOf(cat) === i);
+}
+
+// Слова ищутся целиком, с необязательным множественным числом: «tomato» найдёт и «tomatoes».
+// Так «tea» не срабатывает на «steak», а «rice» на «price». Фразы из нескольких слов тоже работают.
 const KEYWORDS = {
-  'Овощи и фрукты': ['яблок','банан','апельсин','мандарин','картоф','лук','морков','огур','помидор','томат','капуст','перец','чеснок','зелен','лимон','виноград','груш','ягод','авокадо','салат','свекл','редис','кабачк','баклажан','брокколи','грейпфрут','киви','персик','слив','арбуз','дын','петрушк','укроп','шпинат'],
-  'Молочное и яйца': ['молок','сыр','йогурт','творог','сметан','кефир','масл','сливочн','сливк','яйц','ряженк','простокваш'],
-  'Мясо и рыба': ['курин','куриц','говядин','свинин','фарш','колбас','сосиск','рыба','лосос','креветк','ветчин','индейк','бекон','тунец','сельд','утин'],
-  'Хлеб и выпечка': ['хлеб','батон','булк','багет','лаваш','круассан','лепешк','сдоб','сухар'],
-  'Консервы': ['консерв','тушенк','сгущ','мука','сахар','соль','масло раст','растительн','подсолнечн','оливков','маслин','масло оливков','чай','кофе','специи','уксус','кетчуп','майонез','горчиц','мед'],
-  'Паста': ['макарон','паста','спагетти','вермишель','лапша','равиол','лазан','пенне','фузилли','фарфалле'],
-  'Крупы': ['рис','гречк','крупа','овсян','булгур','кускус','перлов','пшено','манк','киноа','чечевиц','горох'],
-  'Сладкое': ['шоколад','конфет','печень','пирожн','торт','вафл','зефир','мармелад','карамел','мороженое','пастил','чипсы','попкорн','сухофрукт','орех','изюм'],
-  'Заморозка': ['заморож','пельмен','лед','вареник замороженн'],
-  'Напитки': ['вода','сок','лимонад','пиво','вино','газировк','квас','морс','энергетик'],
-  'Хозтовары': ['мыло','шампун','стиральный порошок','порошок','губк','салфетк','пакет','туалетная бумага','бумага туалет','моющ','зубная паста','зубной порошок','зубная щетк','средство для мытья','мусорн','фольга','пленк пищев','бытовая хими']
+  'Fruits & vegetables': ['okra','persimmon','kumquat','tomatillo','jicama','kohlrabi','rutabaga','daikon','bok choy','pak choi','chard','collard','lychee','guava','dragon fruit','passion fruit','plantain','sprout','turnip','parsnip','artichoke','fennel','rhubarb','cress','endive','radicchio','mangetout','apple','banana','orange','mandarin','clementine','tangerine','potato','sweet potato','onion','green onion','scallion','shallot','carrot','cucumber','tomato','cherry tomato','cabbage','pepper','bell pepper','chili','garlic','ginger','lemon','lime','grape','pear','berry','strawberry','blueberry','raspberry','blackberry','cranberry','cherry','avocado','lettuce','salad','beet','beetroot','radish','zucchini','courgette','eggplant','aubergine','broccoli','cauliflower','grapefruit','kiwi','peach','plum','nectarine','apricot','watermelon','melon','cantaloupe','pineapple','mango','papaya','pomegranate','parsley','dill','cilantro','coriander','basil','mint','herb','spinach','kale','arugula','rocket','celery','leek','mushroom','corn','asparagus','pumpkin','squash','fig','coconut','fruit','vegetable','veggie','green bean'],
+  'Dairy & eggs': ['quark','paneer','skyr','labneh','creme fraiche','custard','whey','milk','cheese','yogurt','yoghurt','cottage cheese','sour cream','cream','butter','egg','kefir','buttermilk','mozzarella','parmesan','cheddar','feta','ricotta','mascarpone','cream cheese','whipped cream','heavy cream','half and half','margarine','ghee','curd','almond milk','soy milk','oat milk','coconut milk'],
+  'Meat & fish': ['roast','chuck roast','octopus','hake','haddock','bream','sea bream','mackerel','lobster','oyster','scallop','calamari','cutlet','schnitzel','pork shoulder','sirloin','ribeye','tenderloin','gammon','venison','rabbit','goose','chorizo','prosciutto','pepperoni','frankfurter','kielbasa','shellfish','seafood','chicken','chicken breast','beef','pork','pork chop','ground beef','mince','minced meat','sausage','salami','fish','salmon','smoked salmon','shrimp','prawn','ham','turkey','bacon','tuna','herring','sardine','anchovy','duck','steak','lamb','veal','meat','cod','trout','sea bass','tilapia','crab','squid','mussel','bratwurst','hot dog','ribs','drumstick','fillet','meatball','liver','pastrami','jerky'],
+  'Bread & bakery': ['sandwich thin','crumpet','pumpernickel','challah','pizza base','pizza dough','puff pastry','filo','breadstick','bread crumb','panettone','teacake','bread','loaf','baguette','bun','roll','croissant','pita','flatbread','tortilla','bagel','toast','sourdough','ciabatta','brioche','focaccia','naan','lavash','rusk','pastry','muffin','doughnut','donut','danish','scone'],
+  'Pantry & canned': ['steak sauce','miso','harissa','tamarind','cumin','oregano','turmeric','curry','nutmeg','cardamom','bay leaf','chili flake','oyster sauce','fish sauce','hoisin','teriyaki','gravy','sriracha','wasabi','gherkin','caper','passata','tomato puree','baked bean','evaporated milk','coconut cream','custard powder','jelly crystal','sauerkraut','coffee bean','instant coffee','espresso','canned','tinned','tin','condensed milk','flour','sugar','salt','vegetable oil','sunflower oil','olive oil','cooking oil','oil','tea','coffee','spice','black pepper','vinegar','ketchup','mayonnaise','mayo','mustard','honey','jam','peanut butter','yeast','baking powder','baking soda','vanilla','cinnamon','paprika','soy sauce','sauce','tomato paste','tomato sauce','canned tomato','canned corn','canned tuna','canned bean','olive','pickle','syrup','maple syrup','stock','broth','bouillon','pesto','hummus','tahini','salsa','dressing','cornstarch','cocoa','stew','tea bag'],
+  'Pasta': ['udon','soba','rotini','tortellini','cannelloni','pappardelle','spaetzle','bucatini','ziti','conchiglie','orecchiette','mac and cheese','pasta','macaroni','spaghetti','noodle','vermicelli','ravioli','lasagna','lasagne','penne','fusilli','farfalle','tagliatelle','fettuccine','linguine','rigatoni','gnocchi','ramen','orzo','instant noodle'],
+  'Grains': ['rice','buckwheat','groats','oatmeal','oat','rolled oat','bulgur','couscous','barley','pearl barley','millet','semolina','quinoa','lentil','chickpea','pea','bean','cereal','cornflake','granola','muesli','polenta','cornmeal'],
+  'Sweets & snacks': ['potato chips','tortilla chips','pork scratching','kitkat','twix','snickers','mars bar','oreo','haribo','pringles','doritos','cheetos','m&m','skittles','toblerone','kinder','turkish delight','fudge','licorice','liquorice','nougat','marzipan','halva','baklava','trail mix','mixed nuts','digestive','shortbread','eclair','tiramisu','cheesecake','mousse','sorbet','ice lolly','chocolate','candy','sweet','cookie','biscuit','cake','cupcake','pie','waffle','marshmallow','marmalade','caramel','toffee','ice cream','lollipop','chewing gum','gum','chips','crisps','popcorn','dried fruit','raisin','nut','walnut','almond','cashew','hazelnut','pistachio','peanut','snack','cracker','pretzel','candy bar','granola bar','protein bar','dessert','pudding','brownie','nutella','gummy','jelly'],
+  'Frozen': ['fish finger','potsticker','gyoza','tater tot','hash brown','spring roll','samosa','oven chips','potato wedge','frozen pizza','tv dinner','frozen','dumpling','pelmeni','pierogi','vareniki','ice','ice cube','fries','french fries','nuggets','fish stick','popsicle'],
+  'Drinks': ['pepsi','fanta','sprite','7up','dr pepper','root beer','ginger ale','ginger beer','red bull','gatorade','aperol','tequila','bourbon','brandy','cognac','liqueur','baileys','vermouth','sake','stout','ipa','pilsner','squash drink','cordial','milkshake','fruit punch','water','juice','orange juice','lemonade','soda','cola','beer','wine','sparkling water','mineral water','kvass','fruit drink','energy drink','sports drink','smoothie','whiskey','whisky','vodka','rum','gin','champagne','prosecco','cider','kombucha','iced tea','tonic','drink','beverage','liquor','coconut water','lager','ale'],
+  'Household': ['colgate','dettol','sellotape','scotch tape','vanish','domestos','listerine','oral b','gillette','pampers','huggies','persil','ariel','febreze','windex','sanitary pad','panty liner','cotton bud','cotton pad','nappy','washing up liquid','kitchen roll','toilet roll','bin liner','scourer','dish cloth','hand cream','sunscreen','plaster','bandage','paracetamol','ibuprofen','vitamin','cat litter','pet food','dog food','cat food','soap','shampoo','conditioner','laundry detergent','detergent','washing powder','sponge','napkin','paper towel','tissue','trash bag','garbage bag','bin bag','plastic bag','freezer bag','ziploc','toilet paper','dish soap','dishwasher tablet','dishwasher','cleaner','cleaning','bleach','toothpaste','toothbrush','mouthwash','floss','deodorant','razor','shaving','cotton','wipe','sanitizer','foil','aluminum foil','cling film','plastic wrap','baking paper','parchment','battery','light bulb','candle','fabric softener','air freshener','tampon','diaper','shower gel','body wash','lotion','toilet cleaner','glass cleaner']
 };
+
+// Для каждого слова заранее готовим регулярку: целое слово + (s | es | ies у слов на «y»)
+const KEYWORD_PATTERNS = {};
+Object.keys(KEYWORDS).forEach(cat => {
+  KEYWORD_PATTERNS[cat] = KEYWORDS[cat].map(kw => {
+    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const stem = kw.endsWith('y') ? escaped.slice(0, -1) + '(?:y|ies)' : escaped + '(?:s|es)?';
+    return { kw, re: new RegExp('(?:^|[^a-z])' + stem + '(?![a-z])') };
+  });
+});
 
 let learnedCategories = {};
 try {
   const savedLearned = localStorage.getItem('shopping-list-learned');
-  if (savedLearned) learnedCategories = JSON.parse(savedLearned);
+  if (savedLearned) {
+    learnedCategories = JSON.parse(savedLearned);
+    Object.keys(learnedCategories).forEach(key => {
+      learnedCategories[key] = normalizeCategory(learnedCategories[key]);
+    });
+  }
 } catch (e) {}
 
 function saveLearned() {
@@ -135,10 +158,10 @@ function guessCategory(rawName) {
   if (bestLearned) return learnedCategories[bestLearned];
 
   let best = null;
-  for (const cat of Object.keys(KEYWORDS)) {
+  for (const cat of Object.keys(KEYWORD_PATTERNS)) {
     if (!categoryOrder.includes(cat)) continue;
-    for (const kw of KEYWORDS[cat]) {
-      if (n.includes(kw) && (!best || kw.length > best.len)) {
+    for (const { kw, re } of KEYWORD_PATTERNS[cat]) {
+      if (re.test(n) && (!best || kw.length > best.len)) {
         best = { cat, len: kw.length };
       }
     }
